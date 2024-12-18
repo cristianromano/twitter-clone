@@ -5,9 +5,11 @@ import {
   deletePost,
   likeUnlikePost,
   commentOnPost,
+  gettAllPosts,
 } from "../controller/post.controller.js";
 const postRouter = express.Router();
 
+postRouter.get("/", protectRoute, gettAllPosts);
 postRouter.post("/create", protectRoute, createPost);
 postRouter.patch("/like/:id", protectRoute, likeUnlikePost);
 postRouter.patch("/comment/:id", protectRoute, commentOnPost);

@@ -1,3 +1,4 @@
+import Notification from "../models/notification.model.js";
 import Post from "../models/post.model.js";
 import { v2 as cloudinary } from "cloudinary";
 
@@ -68,8 +69,8 @@ export const deletePost = async (req, res) => {
 
 export const likeUnlikePost = async (req, res) => {
   try {
-    const { id } = req.body;
-    user = req.user;
+    const { id } = req.params;
+    const user = req.user;
 
     const post = await Post.findById({ _id: id });
 
@@ -82,12 +83,31 @@ export const likeUnlikePost = async (req, res) => {
     const isLiked = post.likes.includes(user._id);
 
     if (isLiked) {
-      await Post.findByIdAndUpdate(id, {
-        $pull: { likes: user._id },
-      });
+      await Post.updateOne(
+        { _id: id },
+        {
+          $pull: { likes: user._id },
+        }
+      );
     } else {
-      await Post.findByIdAndUpdate(id, {
-        $push: { likes: user._id },
+      await Post.updateOne(
+        { _id: id },
+        {
+          $push: { likes: user._id },
+        }
+      );
+
+      const notification = new Notification({
+        from: user._id,
+        to: post.userId,
+        type: "like",
+      });
+
+      await notification.save();
+
+      res.status(200).json({
+        message: "Notification sent!",
+        notification,
       });
     }
   } catch (error) {
@@ -124,6 +144,30 @@ export const commentOnPost = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "Post failed!",
+      error: error.message,
+    });
+  }
+};
+
+export const gettAllPosts = async (req, res) => {
+  try {
+    const posts = await Post.find()
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "userId",
+        select: "-password",
+      })
+      .populate({
+        path: "comments.user",
+        select: "-password",
+      });
+    res.status(200).json({
+      message: "Posts found!",
+      posts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Posts not found!",
       error: error.message,
     });
   }
