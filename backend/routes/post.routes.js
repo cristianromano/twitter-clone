@@ -6,6 +6,7 @@ import {
   likeUnlikePost,
   commentOnPost,
   gettAllPosts,
+  getFollowingPosts,
 } from "../controller/post.controller.js";
 const postRouter = express.Router();
 
@@ -14,5 +15,6 @@ postRouter.post("/create", protectRoute, createPost);
 postRouter.patch("/like/:id", protectRoute, likeUnlikePost);
 postRouter.patch("/comment/:id", protectRoute, commentOnPost);
 postRouter.delete("/:id", protectRoute, deletePost);
+postRouter.get("/following", protectRoute, getFollowingPosts);
 
 export default postRouter;

@@ -1,5 +1,6 @@
 import { useState } from "react";
-
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
 const EditProfileModal = () => {
   const [formData, setFormData] = useState({
     fullName: "",
@@ -9,6 +10,24 @@ const EditProfileModal = () => {
     link: "",
     newPassword: "",
     currentPassword: "",
+  });
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: async (formData) => {
+      const res = await fetch("/api/user/update", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        toast.error(errorData.message || "An error occurred");
+      } else {
+        toast.success("Profile updated successfully");
+      }
+    },
   });
 
   const handleInputChange = (e) => {
@@ -96,8 +115,13 @@ const EditProfileModal = () => {
               name="link"
               onChange={handleInputChange}
             />
-            <button className="btn btn-primary rounded-full btn-sm text-white">
-              Update
+            <button
+              onClick={() => {
+                mutate(formData);
+              }}
+              className="btn btn-primary rounded-full btn-sm text-white"
+            >
+              {isPending ? "Updating..." : "Update"}
             </button>
           </form>
         </div>

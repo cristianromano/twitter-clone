@@ -172,3 +172,22 @@ export const gettAllPosts = async (req, res) => {
     });
   }
 };
+
+export const getFollowingPosts = async (req, res) => {
+  try {
+    const user = req.user;
+    const posts = await Post.find({ userId: { $in: user.following } })
+      .sort({ createdAt: -1 })
+      .populate({ path: "userId", select: "-password" })
+      .populate({ path: "comments.user", select: "-password" });
+    res.status(200).json({
+      message: "Posts found!",
+      posts,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Posts not found!",
+      error: error.message,
+    });
+  }
+};

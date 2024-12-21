@@ -120,12 +120,17 @@ export const updateProfile = async (req, res) => {
     // Validate that only allowed fields are being updated
     const allowedUpdates = [
       "fullName",
-      "Bio",
-      "Link",
+      "bio",
+      "link",
       "coverImg",
       "profileImg",
+      "username",
+      "email",
+      "newPassword",
+      "currentPassword",
     ];
     const updates = Object.keys(req.body);
+
     const isValidOperation = updates.every((update) =>
       allowedUpdates.includes(update)
     );
