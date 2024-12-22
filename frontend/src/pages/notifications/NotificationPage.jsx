@@ -4,39 +4,62 @@ import LoadingSpinner from "../../components/common/LoadingSpinner.jsx";
 import { IoSettingsOutline } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
 import { FaHeart } from "react-icons/fa6";
-
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
 const NotificationPage = () => {
-  const isLoading = false;
-  const notifications = [
-    {
-      _id: "1",
-      from: {
-        _id: "1",
-        username: "johndoe",
-        profileImg: "/avatars/boy2.png",
-      },
-      type: "follow",
+  const queryClient = useQueryClient();
+  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
+  const { data: notifications, isLoading } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: async () => {
+      try {
+        const res = await fetch(`/api/notification/${authUser?.user._id}`);
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || "An error occurred");
+        }
+        return data;
+      } catch (error) {
+        throw new Error(error.message);
+      }
     },
-    {
-      _id: "2",
-      from: {
-        _id: "2",
-        username: "janedoe",
-        profileImg: "/avatars/girl1.png",
-      },
-      type: "like",
+    retry: false,
+  });
+
+  const { mutate: deleteNotification } = useMutation({
+    mutationFn: async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`/api/notification`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include", // Esto asegura que las cookies se envíen si usas cookies para la sesión
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || "An error occurred");
+        }
+      } catch (error) {
+        throw new Error(error.message);
+      }
     },
-  ];
+    onSuccess: () => {
+      toast.success("Notificación eliminada");
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
 
   const deleteNotifications = () => {
-    alert("All notifications deleted");
+    deleteNotification();
   };
 
   return (
     <>
       <div className="flex-[4_4_0] border-l border-r border-gray-700 min-h-screen">
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
-          <p className="font-bold">Notifications</p>
+          <p className="font-bold">Notificaciones</p>
           <div className="dropdown ">
             <div tabIndex={0} role="button" className="m-1">
               <IoSettingsOutline className="w-4" />
@@ -46,7 +69,7 @@ const NotificationPage = () => {
               className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
             >
               <li>
-                <a onClick={deleteNotifications}>Delete all notifications</a>
+                <a onClick={deleteNotifications}>Borrar notificaciones</a>
               </li>
             </ul>
           </div>
@@ -56,10 +79,10 @@ const NotificationPage = () => {
             <LoadingSpinner size="lg" />
           </div>
         )}
-        {notifications?.length === 0 && (
-          <div className="text-center p-4 font-bold">No notifications 🤔</div>
+        {notifications.notifications?.length === 0 && (
+          <div className="text-center p-4 font-bold">Sin notificaciones 🤔</div>
         )}
-        {notifications?.map((notification) => (
+        {notifications.notifications?.map((notification) => (
           <div className="border-b border-gray-700" key={notification._id}>
             <div className="flex gap-2 p-4">
               {notification.type === "follow" && (
@@ -84,8 +107,8 @@ const NotificationPage = () => {
                     @{notification.from.username}
                   </span>{" "}
                   {notification.type === "follow"
-                    ? "followed you"
-                    : "liked your post"}
+                    ? "Te siguio"
+                    : "Dio like a tu post"}
                 </div>
               </Link>
             </div>

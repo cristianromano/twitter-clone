@@ -169,7 +169,7 @@ export const commentOnPost = async (req, res) => {
     }
 
     res.status(200).json({
-      message: "Comment added!",
+      message: "Comentario agregado!",
       post,
     });
   } catch (error) {
