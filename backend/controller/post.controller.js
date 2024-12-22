@@ -1,14 +1,15 @@
 import Notification from "../models/notification.model.js";
 import Post from "../models/post.model.js";
 import { v2 as cloudinary } from "cloudinary";
+import User from "../models/user.model.js";
 
 export const createPost = async (req, res) => {
   try {
-    const { text, image } = req.body;
-    const user = req.user;
+    let { text, image } = req.body;
+    let user = req.user;
 
     if (image) {
-      const uploadedResponse = await cloudinary.uploader.upload(image, {
+      let uploadedResponse = await cloudinary.uploader.upload(image, {
         upload_preset: "social_media",
       });
       image = uploadedResponse.secure_url;
@@ -45,8 +46,18 @@ export const deletePost = async (req, res) => {
     }
 
     if (post.image) {
-      const image = post.image.split("/").slice(-1)[0];
-      await cloudinary.uploader.destroy(image);
+      // Extraer el identificador público sin la extensión
+      const publicId = post.image.split("/").slice(-1)[0].split(".")[0];
+      console.log("Public ID to delete:", publicId); // Para depurar
+
+      // Intentar destruir la imagen
+      await cloudinary.uploader.destroy(publicId, (error, result) => {
+        if (error) {
+          console.error("Error deleting image:", error);
+        } else {
+          console.log("Image deleted:", result);
+        }
+      });
     }
 
     if (post.userId.toString() !== req.user._id.toString()) {
@@ -89,11 +100,30 @@ export const likeUnlikePost = async (req, res) => {
           $pull: { likes: user._id },
         }
       );
+      await User.updateOne(
+        { _id: user._id },
+        {
+          $pull: { likedPosts: id },
+        }
+      );
+      const updatedLikes = post.likes.filter(
+        (like) => like.toString() !== user._id.toString()
+      );
+      res.status(200).json({
+        message: "Post unliked!",
+        updatedLikes,
+      });
     } else {
       await Post.updateOne(
         { _id: id },
         {
           $push: { likes: user._id },
+        }
+      );
+      await User.updateOne(
+        { _id: user._id },
+        {
+          $push: { likedPosts: id },
         }
       );
 
@@ -105,9 +135,10 @@ export const likeUnlikePost = async (req, res) => {
 
       await notification.save();
 
+      const updatedLikes = [...post.likes, user._id];
       res.status(200).json({
-        message: "Notification sent!",
-        notification,
+        message: "Post liked!",
+        updatedLikes,
       });
     }
   } catch (error) {

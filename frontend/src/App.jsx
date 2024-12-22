@@ -58,7 +58,7 @@ function App() {
             path="/notifications"
             element={authUser ? <NotificationPage /> : <Navigate to={"/"} />}
           />
-          <Route path="/profile" element={<Navigate to={"/"} />} />
+          {/* <Route path="/profile" element={<Navigate to={"/"} />} /> */}
           <Route
             path="/profile/:username"
             element={authUser ? <ProfilePage /> : <Navigate to={"/"} />}

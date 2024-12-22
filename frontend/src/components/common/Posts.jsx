@@ -1,20 +1,44 @@
 import Post from "./Post.jsx";
 import PostSkeleton from "../skeletons/PostSkeleton.jsx";
-import { POSTS } from "../../utils/db/dummy.js";
+
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 const Posts = ({ feedType }) => {
-  const isLoading = false;
+  const getEndpoint = () => {
+    switch (feedType) {
+      case "forYou":
+        return "/api/post";
 
-  const POST_ENDPOINT =
-    feedType === "forYou" ? "/api/posts/all" : "/api/posts/following";
+      case "following":
+        return "/api/post/following";
+      default:
+        return "/api/post";
+    }
+  };
 
-  const { data: POSTS, isLoading } = useQuery({
+  const POST_ENDPOINT = getEndpoint();
+
+  const {
+    data: post,
+    isLoading,
+    refetch,
+    isRefetching,
+  } = useQuery({
     queryKey: ["posts"],
     queryFn: async () => {
       try {
-        const res = await fetch(getPostEndpoint);
+        const token = localStorage.getItem("jwt");
+        const res = await fetch(`http://localhost:3000${POST_ENDPOINT}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include", // Esto asegura que las cookies se envíen si usas cookies para la sesión
+        });
         const data = await res.json();
+        console.log(data);
         if (!res.ok) {
           throw new Error(data.message || "An error occurred");
         }
@@ -26,21 +50,25 @@ const Posts = ({ feedType }) => {
     retry: false,
   });
 
+  useEffect(() => {
+    refetch();
+  }, [feedType, refetch]);
+
   return (
     <>
-      {isLoading && (
+      {(isLoading || isRefetching) && (
         <div className="flex flex-col justify-center">
           <PostSkeleton />
           <PostSkeleton />
           <PostSkeleton />
         </div>
       )}
-      {!isLoading && POSTS?.length === 0 && (
+      {!isLoading && post?.length === 0 && (
         <p className="text-center my-4">No posts in this tab. Switch 👻</p>
       )}
-      {!isLoading && POSTS && (
+      {!isLoading && post && (
         <div>
-          {POSTS.map((post) => (
+          {post.map((post) => (
             <Post key={post._id} post={post} />
           ))}
         </div>

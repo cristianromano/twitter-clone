@@ -2,23 +2,59 @@ import { CiImageOn } from "react-icons/ci";
 import { BsEmojiSmileFill } from "react-icons/bs";
 import { useRef, useState } from "react";
 import { IoCloseSharp } from "react-icons/io5";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
 
 const CreatePost = () => {
   const [text, setText] = useState("");
   const [img, setImg] = useState(null);
 
+  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
+  const queryClient = useQueryClient();
+
+  const {
+    mutate: createPost,
+    isPending,
+    isError,
+  } = useMutation({
+    mutationFn: async ({ text, image }) => {
+      try {
+        const token = localStorage.getItem("jwt");
+        const res = await fetch("/api/post/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ text, image }),
+        });
+        const data = await res.json();
+        console.log(data);
+        if (!res.ok) {
+          throw new Error(data.message || "An error occurred");
+        }
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
+    onSuccess: () => {
+      setImg(null);
+      setText("");
+
+      toast.success("Post created!");
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+    },
+  });
+
   const imgRef = useRef(null);
 
-  const isPending = false;
-  const isError = false;
-
   const data = {
-    profileImg: "/avatars/boy1.svg",
+    profileImg: authUser.user.profileImg,
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert("Post created successfully");
+    createPost({ text, image: img });
   };
 
   const handleImgChange = (e) => {
@@ -32,6 +68,7 @@ const CreatePost = () => {
     }
   };
 
+  
   return (
     <div className="flex p-4 items-start gap-4 border-b border-gray-700">
       <div className="avatar">
@@ -68,7 +105,12 @@ const CreatePost = () => {
               className="fill-primary w-6 h-6 cursor-pointer"
               onClick={() => imgRef.current.click()}
             />
-            <BsEmojiSmileFill className="fill-primary w-5 h-5 cursor-pointer" />
+            <BsEmojiSmileFill
+              onClick={() => {
+                alert("Emoji picker not implemented yet!");
+              }}
+              className="fill-primary w-5 h-5 cursor-pointer"
+            />
           </div>
           <input
             accept="image/*"

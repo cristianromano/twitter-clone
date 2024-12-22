@@ -7,6 +7,7 @@ import userRouter from "./routes/user.routes.js";
 import { v2 as cloudinary } from "cloudinary";
 import postRouter from "./routes/post.routes.js";
 import notificationRouter from "./routes/notifications.routes.js";
+import cors from "cors";
 
 dotenv.config();
 // Configuration
@@ -19,7 +20,15 @@ cloudinary.config({
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(express.json());
+app.use(
+  cors({
+    origin: "http://localhost:5173", // Replace with your frontend's origin
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE"], // Allowed HTTP methods
+    credentials: true, // If cookies or authentication are needed
+  })
+);
+
+app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
