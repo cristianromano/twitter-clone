@@ -8,7 +8,6 @@ import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import LoadingSpinner from "./LoadingSpinner.jsx";
-import { formatPostDate } from "../../utils/date/index.js";
 
 const Post = ({ post }) => {
   const [comment, setComment] = useState("");
@@ -83,57 +82,15 @@ const Post = ({ post }) => {
     },
   });
 
-  const { mutate: commentPost, isPending: isCommenting } = useMutation({
-    mutationFn: async () => {
-      try {
-        const token = localStorage.getItem("jwt");
-
-        const res = await fetch(
-          `http://localhost:3000/api/post/comment/${post._id}`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            credentials: "include",
-            body: JSON.stringify({ text: comment }),
-          }
-        );
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data.message || "An error occurred");
-        }
-
-        return data;
-      } catch (error) {
-        throw new Error(error.message);
-      }
-    },
-    onSuccess: (data) => {
-      setComment("");
-      const { message, posts } = data;
-      toast.success(message);
-      queryClient.invalidateQueries({ queryKey: ["posts"] }, (oldData) => {
-        return oldData.map((p) => {
-          if (p._id === post._id) {
-            return { ...p, comments: posts.comments };
-          }
-          return p;
-        });
-      });
-    },
-  });
-
   const postOwner = post;
 
   const isLiked = post.likes.includes(authUser.user._id);
 
   const isMyPost = authUser.user._id === postOwner.userId._id;
 
-  const formattedDate = formatPostDate(post.createdAt);
+  const formattedDate = "1h";
+
+  const isCommenting = false;
 
   const handleDeletePost = () => {
     postComment();
@@ -141,10 +98,6 @@ const Post = ({ post }) => {
 
   const handlePostComment = (e) => {
     e.preventDefault();
-    if (isCommenting) {
-      return;
-    }
-    commentPost();
   };
 
   const handleLikePost = () => {
@@ -220,17 +173,17 @@ const Post = ({ post }) => {
                   {post.comments.length}
                 </span>
               </div>
-              {/* Estamos usando el componente Modal de DaisyUI */}
+              {/* We're using Modal Component from DaisyUI */}
               <dialog
                 id={`comments_modal${post._id}`}
                 className="modal border-none outline-none"
               >
                 <div className="modal-box rounded border border-gray-600">
-                  <h3 className="font-bold text-lg mb-4">COMENTARIOS</h3>
+                  <h3 className="font-bold text-lg mb-4">COMMENTS</h3>
                   <div className="flex flex-col gap-3 max-h-60 overflow-auto">
                     {post.comments.length === 0 && (
                       <p className="text-sm text-slate-500">
-                        No hay comentarios aún 🤔 Sé el primero 😉
+                        No comments yet 🤔 Be the first one 😉
                       </p>
                     )}
                     {post.comments.map((comment) => (
@@ -265,7 +218,7 @@ const Post = ({ post }) => {
                   >
                     <textarea
                       className="textarea w-full p-1 rounded text-md resize-none border focus:outline-none  border-gray-800"
-                      placeholder="Añadir un comentario..."
+                      placeholder="Add a comment..."
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
                     />
@@ -273,13 +226,13 @@ const Post = ({ post }) => {
                       {isCommenting ? (
                         <span className="loading loading-spinner loading-md"></span>
                       ) : (
-                        "Publicar"
+                        "Post"
                       )}
                     </button>
                   </form>
                 </div>
                 <form method="dialog" className="modal-backdrop">
-                  <button className="outline-none">cerrar</button>
+                  <button className="outline-none">close</button>
                 </form>
               </dialog>
               <div className="flex gap-1 items-center group cursor-pointer">

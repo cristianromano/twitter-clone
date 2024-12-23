@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import Posts from "../../components/common/Posts";
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton.jsx";
@@ -11,9 +11,7 @@ import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaLink } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
-import { formatMemberSinceDate } from "../../utils/date/index.js";
+import { useQuery } from "@tanstack/react-query";
 
 const ProfilePage = () => {
   const [coverImg, setCoverImg] = useState(null);
@@ -23,38 +21,10 @@ const ProfilePage = () => {
   const coverImgRef = useRef(null);
   const profileImgRef = useRef(null);
 
+  const isLoading = false;
   const isMyProfile = true;
 
-  const { username } = useParams();
-
-  const {
-    data: userProfile,
-    isLoading,
-    refetch,
-  } = useQuery({
-    queryKey: ["userProfile"],
-    queryFn: async () => {
-      try {
-        const res = await fetch(
-          `http://localhost:3000/api/user/profile/${username}`
-        );
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.message || "An error occurred");
-        }
-        return data;
-      } catch (error) {
-        throw new Error(error.message);
-      }
-    },
-    retry: false,
-  });
-
-  const memberDate = formatMemberSinceDate(userProfile?.user.createdAt);
-
-  useEffect(() => {
-    refetch();
-  }, [username, refetch]);
+  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
 
   const handleImgChange = (e, state) => {
     const file = e.target.files[0];
@@ -73,20 +43,18 @@ const ProfilePage = () => {
       <div className="flex-[4_4_0]  border-r border-gray-700 min-h-screen ">
         {/* HEADER */}
         {isLoading && <ProfileHeaderSkeleton />}
-        {!isLoading && !userProfile?.user && (
+        {!isLoading && !authUser?.user && (
           <p className="text-center text-lg mt-4">User not found</p>
         )}
         <div className="flex flex-col">
-          {!isLoading && userProfile?.user && (
+          {!isLoading && authUser?.user && (
             <>
               <div className="flex gap-10 px-4 py-2 items-center">
                 <Link to="/">
                   <FaArrowLeft className="w-4 h-4" />
                 </Link>
                 <div className="flex flex-col">
-                  <p className="font-bold text-lg">
-                    {userProfile?.user.fullName}
-                  </p>
+                  <p className="font-bold text-lg">{authUser?.user.fullName}</p>
                   <span className="text-sm text-slate-500">
                     {POSTS?.length} posts
                   </span>
@@ -95,7 +63,7 @@ const ProfilePage = () => {
               {/* COVER IMG */}
               <div className="relative group/cover">
                 <img
-                  src={coverImg || userProfile.user?.coverImg || "/cover.png"}
+                  src={coverImg || authUser.user?.coverImg || "/cover.png"}
                   className="h-52 w-full object-cover"
                   alt="cover image"
                 />
@@ -126,7 +94,7 @@ const ProfilePage = () => {
                     <img
                       src={
                         profileImg ||
-                        userProfile?.user.profileImg ||
+                        authUser?.user.profileImg ||
                         "/avatar-placeholder.png"
                       }
                     />
@@ -162,18 +130,18 @@ const ProfilePage = () => {
               </div>
 
               <div className="flex flex-col gap-4 mt-14 px-4">
-                <div className="flex flex-col items-start">
+                <div className="flex flex-col">
                   <span className="font-bold text-lg">
-                    {userProfile?.user.fullName}
+                    {authUser?.user.fullName}
                   </span>
                   <span className="text-sm text-slate-500">
-                    @{userProfile?.user.username}
+                    @{authUser?.user.username}
                   </span>
-                  <span className="text-sm my-1">{userProfile?.user.bio}</span>
+                  <span className="text-sm my-1">{authUser?.user.bio}</span>
                 </div>
 
                 <div className="flex gap-2 flex-wrap">
-                  {userProfile?.user.link && (
+                  {authUser?.user.link && (
                     <div className="flex gap-1 items-center ">
                       <>
                         <FaLink className="w-3 h-3 text-slate-500" />
@@ -190,19 +158,21 @@ const ProfilePage = () => {
                   )}
                   <div className="flex gap-2 items-center">
                     <IoCalendarOutline className="w-4 h-4 text-slate-500" />
-                    <span className="text-sm text-slate-500">{memberDate}</span>
+                    <span className="text-sm text-slate-500">
+                      Joined July 2021
+                    </span>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <div className="flex gap-1 items-center">
                     <span className="font-bold text-xs">
-                      {userProfile?.user.following.length}
+                      {authUser?.user.following.length}
                     </span>
                     <span className="text-slate-500 text-xs">Following</span>
                   </div>
                   <div className="flex gap-1 items-center">
                     <span className="font-bold text-xs">
-                      {userProfile?.user.followers.length}
+                      {authUser?.user.followers.length}
                     </span>
                     <span className="text-slate-500 text-xs">Followers</span>
                   </div>
