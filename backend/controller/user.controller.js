@@ -115,8 +115,19 @@ export const getSuggestedUsers = async (req, res) => {
 export const updateProfile = async (req, res) => {
   const userLogged = req.user;
   try {
-    const { fullName, Bio, Link, coverImg, profileImg } = req.body;
+    let {
+      fullName,
+      bio,
+      link,
+      coverImg,
+      profileImg,
+      username,
+      email,
+      newPassword,
+      currentPassword,
+    } = req.body;
 
+    console.log(req.body);
     // Validate that only allowed fields are being updated
     const allowedUpdates = [
       "fullName",
@@ -129,9 +140,9 @@ export const updateProfile = async (req, res) => {
       "newPassword",
       "currentPassword",
     ];
-    const updates = Object.keys(req.body);
+    let updates = Object.keys(req.body);
 
-    const isValidOperation = updates.every((update) =>
+    let isValidOperation = updates.every((update) =>
       allowedUpdates.includes(update)
     );
 
@@ -141,33 +152,60 @@ export const updateProfile = async (req, res) => {
       });
     }
 
-    if (profileImg) {
-      if (userLogged.profileImg) {
-        const publicId = userLogged.profileImg.match(/[^/]+$/)[0].split(".")[0];
-        await cloudinary.uploader.destroy(publicId);
-      }
-      const image = await cloudinary.uploader.upload(profileImg);
+    const hashedPassword = null;
+    const userCompare = await User.findById(userLogged._id);
 
-      profileImg = image.secure_url;
+    if (currentPassword && newPassword) {
+      const isPasswordCorrect = await bcrypt.compare(
+        currentPassword,
+        userCompare.password
+      );
+
+      if (!isPasswordCorrect) {
+        return res.status(400).json({
+          message: "Contraseña actual incorrecta!",
+        });
+      }
+
+      const salt = await bcrypt.genSalt(10);
+
+      hashedPassword = await bcrypt.hash(newPassword, salt);
     }
 
-    if (coverImg) {
-      if (userLogged.coverImg) {
-        const publicId = userLogged.coverImg.match(/[^/]+$/)[0].split(".")[0];
+    if (profileImg != null) {
+      if (userLogged.profileImg) {
+        let publicId = userLogged.profileImg.match(/[^/]+$/)[0].split(".")[0];
         await cloudinary.uploader.destroy(publicId);
       }
-      const image = await cloudinary.uploader.upload(coverImg);
+      let image = await cloudinary.uploader.upload(profileImg);
+
+      profileImg = image.secure_url;
+    } else {
+      profileImg = userLogged.profileImg;
+    }
+
+    if (coverImg != null) {
+      if (userLogged.coverImg) {
+        let publicId = userLogged.coverImg.match(/[^/]+$/)[0].split(".")[0];
+        await cloudinary.uploader.destroy(publicId);
+      }
+      let image = await cloudinary.uploader.upload(coverImg);
       coverImg = image.secure_url;
+    } else {
+      coverImg = userLogged.coverImg;
     }
 
     const user = await User.findByIdAndUpdate(
       userLogged._id,
       {
-        fullName,
-        Bio,
-        Link,
-        profileImg,
-        coverImg,
+        fullName: fullName ? fullName : userLogged.fullName,
+        bio: bio ? bio : userLogged.bio,
+        link: link ? link : userLogged.link,
+        profileImg: profileImg,
+        coverImg: coverImg,
+        username: username ? username : userLogged.username,
+        email: email ? email : userLogged.email,
+        password: hashedPassword ? hashedPassword : userCompare.password,
       },
       { new: true }
     );

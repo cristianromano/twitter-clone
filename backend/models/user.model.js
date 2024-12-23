@@ -43,11 +43,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    Bio: {
+    bio: {
       type: String,
       default: "",
     },
-    Link: {
+    link: {
       type: String,
       default: "",
     },

@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { toast } from "react-hot-toast";
-const EditProfileModal = () => {
+import { useState, useEffect } from "react";
+
+import useUpdate from "../../hooks/useUpdate";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+
+const EditProfileModal = ({ authUser }) => {
   const [formData, setFormData] = useState({
     fullName: "",
     username: "",
@@ -12,27 +14,25 @@ const EditProfileModal = () => {
     currentPassword: "",
   });
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: async (formData) => {
-      const res = await fetch("/api/user/update", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-      if (!res.ok) {
-        const errorData = await res.json();
-        toast.error(errorData.message || "An error occurred");
-      } else {
-        toast.success("Profile updated successfully");
-      }
-    },
-  });
+  const { updateProfile, isUpdatingProfile } = useUpdate();
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  useEffect(() => {
+    if (authUser) {
+      setFormData({
+        fullName: authUser.fullName,
+        username: authUser.username,
+        email: authUser.email,
+        bio: authUser.bio,
+        link: authUser.link,
+        newPassword: "",
+        currentPassword: "",
+      });
+    }
+  }, [authUser]);
 
   return (
     <>
@@ -51,7 +51,6 @@ const EditProfileModal = () => {
             className="flex flex-col gap-4"
             onSubmit={(e) => {
               e.preventDefault();
-              alert("Profile updated successfully");
             }}
           >
             <div className="flex flex-wrap gap-2">
@@ -117,11 +116,11 @@ const EditProfileModal = () => {
             />
             <button
               onClick={() => {
-                mutate(formData);
+                updateProfile(formData);
               }}
               className="btn btn-primary rounded-full btn-sm text-white"
             >
-              {isPending ? "Updating..." : "Update"}
+              {isUpdatingProfile ? <LoadingSpinner /> : "Actualizar"}
             </button>
           </form>
         </div>
