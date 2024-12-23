@@ -5,6 +5,7 @@ import {
   getSuggestedUsers,
   updateProfile,
   restorePassword,
+  getUserPosts,
 } from "../controller/user.controller.js";
 import { protectRoute } from "../middleware/protectRoute.js";
 import multer from "multer";
@@ -20,5 +21,6 @@ userRouter.post(
   protectRoute,
   updateProfile
 );
+userRouter.get("/:username", protectRoute, getUserPosts);
 userRouter.patch("/restorePassword", protectRoute, restorePassword);
 export default userRouter;
