@@ -48,7 +48,6 @@ export const deletePost = async (req, res) => {
     if (post.image) {
       // Extraer el identificador público sin la extensión
       const publicId = post.image.split("/").slice(-1)[0].split(".")[0];
-      console.log("Public ID to delete:", publicId); // Para depurar
 
       // Intentar destruir la imagen
       await cloudinary.uploader.destroy(publicId, (error, result) => {

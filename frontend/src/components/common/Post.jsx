@@ -75,7 +75,6 @@ const Post = ({ post }) => {
         return {
           ...oldData, // Asegúrate de mantener las demás propiedades de oldData
           data: oldData.data.map((p) => {
-            console.log("P:", p);
             if (p._id === post._id) {
               return {
                 ...p,
@@ -222,11 +221,11 @@ const Post = ({ post }) => {
                 className="modal border-none outline-none"
               >
                 <div className="modal-box rounded border border-gray-600">
-                  <h3 className="font-bold text-lg mb-4">COMMENTS</h3>
+                  <h3 className="font-bold text-lg mb-4">Comentarios</h3>
                   <div className="flex flex-col gap-3 max-h-60 overflow-auto">
                     {post.comments.length === 0 && (
                       <p className="text-sm text-slate-500">
-                        No comments yet 🤔 Be the first one 😉
+                        Sin comentarios 🤔 Se el primero 😉
                       </p>
                     )}
                     {post.comments.map((comment) => (
@@ -275,7 +274,7 @@ const Post = ({ post }) => {
                   </form>
                 </div>
                 <form method="dialog" className="modal-backdrop">
-                  <button className="outline-none">close</button>
+                  <button className="outline-none">Cerrar</button>
                 </form>
               </dialog>
               <div className="flex gap-1 items-center group cursor-pointer">

@@ -29,7 +29,6 @@ const CreatePost = () => {
           body: JSON.stringify({ text, image }),
         });
         const data = await res.json();
-        console.log(data);
         if (!res.ok) {
           throw new Error(data.message || "An error occurred");
         }
@@ -68,7 +67,6 @@ const CreatePost = () => {
     }
   };
 
-  
   return (
     <div className="flex p-4 items-start gap-4 border-b border-gray-700">
       <div className="avatar">
@@ -79,7 +77,7 @@ const CreatePost = () => {
       <form className="flex flex-col gap-2 w-full" onSubmit={handleSubmit}>
         <textarea
           className="textarea w-full p-0 text-lg resize-none border-none focus:outline-none  border-gray-800"
-          placeholder="What is happening?!"
+          placeholder="Que estas pensando?"
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
@@ -107,7 +105,7 @@ const CreatePost = () => {
             />
             <BsEmojiSmileFill
               onClick={() => {
-                alert("Emoji picker not implemented yet!");
+                toast.error("Emoji todavia no implementado!");
               }}
               className="fill-primary w-5 h-5 cursor-pointer"
             />
@@ -123,7 +121,7 @@ const CreatePost = () => {
             {isPending ? "Posting..." : "Post"}
           </button>
         </div>
-        {isError && <div className="text-red-500">Something went wrong</div>}
+        {isError && <div className="text-red-500">Algo salio mal</div>}
       </form>
     </div>
   );

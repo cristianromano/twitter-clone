@@ -68,7 +68,7 @@ const Posts = ({ feedType, username, userId }) => {
         </div>
       )}
       {!isLoading && posts.data?.length === 0 && (
-        <p className="text-center my-4">No posts in this tab. Switch 👻</p>
+        <p className="text-center my-4">No hay posteos en esta ventana 👻</p>
       )}
       {!isLoading && posts && (
         <div>

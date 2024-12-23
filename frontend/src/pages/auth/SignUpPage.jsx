@@ -56,7 +56,7 @@ const SignUpPage = () => {
           onSubmit={handleSubmit}
         >
           <XSvg className="w-24 lg:hidden fill-white" />
-          <h1 className="text-4xl font-extrabold text-white">Join today.</h1>
+          <h1 className="text-4xl font-extrabold text-white">Unete hoy.</h1>
           <label className="input input-bordered rounded flex items-center gap-2">
             <MdOutlineMail />
             <input
@@ -85,7 +85,7 @@ const SignUpPage = () => {
               <input
                 type="text"
                 className="grow"
-                placeholder="Full Name"
+                placeholder="Nombre completo"
                 name="fullName"
                 onChange={handleInputChange}
                 value={formData.fullName}
@@ -97,22 +97,22 @@ const SignUpPage = () => {
             <input
               type="password"
               className="grow"
-              placeholder="Password"
+              placeholder="Contraseña"
               name="password"
               onChange={handleInputChange}
               value={formData.password}
             />
           </label>
           <button className="btn rounded-full btn-primary text-white">
-            {isPending ? "Creating account..." : "Sign up"}
+            {isPending ? "Creando cuenta..." : "Registrarse"}
           </button>
           {isError && <p className="text-red-500">{error.message}</p>}
         </form>
         <div className="flex flex-col lg:w-2/3 gap-2 mt-4">
-          <p className="text-white text-lg">Already have an account?</p>
+          <p className="text-white text-lg">Ya tenes cuenta?</p>
           <Link to="/login">
             <button className="btn rounded-full btn-primary text-white btn-outline w-full">
-              Sign in
+              Ingresar
             </button>
           </Link>
         </div>

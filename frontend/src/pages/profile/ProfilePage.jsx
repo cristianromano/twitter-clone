@@ -93,7 +93,7 @@ const ProfilePage = () => {
         {/* HEADER */}
         {(isLoading || isRefetching) && <ProfileHeaderSkeleton />}
         {!isLoading && !isRefetching && !user && (
-          <p className="text-center text-lg mt-4">User not found</p>
+          <p className="text-center text-lg mt-4">No se encontro al usuario</p>
         )}
         <div className="flex flex-col">
           {!isLoading && !isRefetching && user && (
@@ -173,7 +173,11 @@ const ProfilePage = () => {
                 {(coverImg || profileImg) && (
                   <button
                     className="btn btn-primary rounded-full btn-sm text-white px-4 ml-2"
-                    onClick={() => updateProfile({ coverImg, profileImg })}
+                    onClick={async () => {
+                      await updateProfile({ coverImg, profileImg });
+                      setCoverImg(null);
+                      setProfileImg(null);
+                    }}
                   >
                     {isUpdatingProfile ? <LoadingSpinner /> : "Actualizar"}
                   </button>
