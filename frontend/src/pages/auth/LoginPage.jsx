@@ -7,6 +7,7 @@ import { MdOutlineMail } from "react-icons/md";
 import { MdPassword } from "react-icons/md";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import LoadingSpinner from "../../components/common/LoadingSpinner.jsx";
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -81,7 +82,7 @@ const LoginPage = () => {
             />
           </label>
           <button className="btn rounded-full btn-primary text-white">
-            Logueo
+            {isPending ? <LoadingSpinner /> : "Logueo"}
           </button>
           {isError && <p className="text-red-500">Algo salio mal</p>}
         </form>
@@ -89,7 +90,7 @@ const LoginPage = () => {
           <p className="text-white text-lg">Tenes cuenta?</p>
           <Link to="/signup">
             <button className="btn rounded-full btn-primary text-white btn-outline w-full">
-              {isPending ? "Loading..." : "Registrarse"}
+              Registrarse
             </button>
           </Link>
         </div>
