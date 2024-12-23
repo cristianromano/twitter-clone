@@ -103,7 +103,7 @@ export const likeUnlikePost = async (req, res) => {
       await User.updateOne(
         { _id: user._id },
         {
-          $pull: { likedPosts: id },
+          $pull: { LikedPosts: id },
         }
       );
       const updatedLikes = post.likes.filter(
@@ -123,7 +123,7 @@ export const likeUnlikePost = async (req, res) => {
       await User.updateOne(
         { _id: user._id },
         {
-          $push: { likedPosts: id },
+          $push: { LikedPosts: id },
         }
       );
 
@@ -220,5 +220,57 @@ export const getFollowingPosts = async (req, res) => {
       message: "Posts not found!",
       error: error.message,
     });
+  }
+};
+
+export const getLikedPosts = async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    console.log(user.LikedPosts);
+    const likedPosts = await Post.find({
+      _id: { $in: user.LikedPosts },
+    })
+      .populate({
+        path: "userId",
+        select: "-password",
+      })
+      .populate({
+        path: "comments.user",
+        select: "-password",
+      });
+
+    res.status(200).json(likedPosts);
+  } catch (error) {
+    console.log("Error in getLikedPosts controller: ", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getUserPosts = async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    const user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const posts = await Post.find({ user: user._id })
+      .sort({ createdAt: -1 })
+      .populate({
+        path: "user",
+        select: "-password",
+      })
+      .populate({
+        path: "comments.user",
+        select: "-password",
+      });
+
+    res.status(200).json(posts);
+  } catch (error) {
+    console.log("Error in getUserPosts controller: ", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
