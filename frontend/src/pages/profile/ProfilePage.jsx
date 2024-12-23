@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 
 import Posts from "../../components/common/Posts";
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton.jsx";
@@ -12,7 +12,7 @@ import { IoCalendarOutline } from "react-icons/io5";
 import { FaLink } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
 import { useQuery } from "@tanstack/react-query";
-
+import { formatMemberSinceDate } from "../../utils/dates/index.js";
 const ProfilePage = () => {
   const [coverImg, setCoverImg] = useState(null);
   const [profileImg, setProfileImg] = useState(null);
@@ -21,10 +21,49 @@ const ProfilePage = () => {
   const coverImgRef = useRef(null);
   const profileImgRef = useRef(null);
 
-  const isLoading = false;
-  const isMyProfile = true;
-
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
+
+  const { username } = useParams();
+
+  const {
+    data: user,
+    isLoading,
+    refetch,
+    isRefetching,
+  } = useQuery({
+    queryKey: ["userProfile"],
+    queryFn: async () => {
+      try {
+        const token = localStorage.getItem("jwt");
+        const res = await fetch(
+          `http://localhost:3000/api/user/profile/${username}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: "include",
+          }
+        );
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || "An error occurred");
+        }
+        return data.data;
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
+  });
+
+  const isMyProfile = authUser?.user._id === user?._id;
+
+  useEffect(() => {
+    if (username) {
+      refetch();
+    }
+  }, [username, refetch]);
 
   const handleImgChange = (e, state) => {
     const file = e.target.files[0];
@@ -42,19 +81,19 @@ const ProfilePage = () => {
     <>
       <div className="flex-[4_4_0]  border-r border-gray-700 min-h-screen ">
         {/* HEADER */}
-        {isLoading && <ProfileHeaderSkeleton />}
-        {!isLoading && !authUser?.user && (
+        {(isLoading || isRefetching) && <ProfileHeaderSkeleton />}
+        {!isLoading && !isRefetching && !user && (
           <p className="text-center text-lg mt-4">User not found</p>
         )}
         <div className="flex flex-col">
-          {!isLoading && authUser?.user && (
+          {!isLoading && !isRefetching && user && (
             <>
               <div className="flex gap-10 px-4 py-2 items-center">
                 <Link to="/">
                   <FaArrowLeft className="w-4 h-4" />
                 </Link>
                 <div className="flex flex-col">
-                  <p className="font-bold text-lg">{authUser?.user.fullName}</p>
+                  <p className="font-bold text-lg">{user?.fullName}</p>
                   <span className="text-sm text-slate-500">
                     {POSTS?.length} posts
                   </span>
@@ -63,7 +102,7 @@ const ProfilePage = () => {
               {/* COVER IMG */}
               <div className="relative group/cover">
                 <img
-                  src={coverImg || authUser.user?.coverImg || "/cover.png"}
+                  src={coverImg || user?.coverImg || "/cover.png"}
                   className="h-52 w-full object-cover"
                   alt="cover image"
                 />
@@ -94,7 +133,7 @@ const ProfilePage = () => {
                     <img
                       src={
                         profileImg ||
-                        authUser?.user.profileImg ||
+                        user?.profileImg ||
                         "/avatar-placeholder.png"
                       }
                     />
@@ -131,17 +170,15 @@ const ProfilePage = () => {
 
               <div className="flex flex-col gap-4 mt-14 px-4">
                 <div className="flex flex-col">
-                  <span className="font-bold text-lg">
-                    {authUser?.user.fullName}
-                  </span>
+                  <span className="font-bold text-lg">{user?.fullName}</span>
                   <span className="text-sm text-slate-500">
-                    @{authUser?.user.username}
+                    @{user?.username}
                   </span>
-                  <span className="text-sm my-1">{authUser?.user.bio}</span>
+                  <span className="text-sm my-1">{user?.bio}</span>
                 </div>
 
                 <div className="flex gap-2 flex-wrap">
-                  {authUser?.user.link && (
+                  {user?.link && (
                     <div className="flex gap-1 items-center ">
                       <>
                         <FaLink className="w-3 h-3 text-slate-500" />
@@ -159,20 +196,20 @@ const ProfilePage = () => {
                   <div className="flex gap-2 items-center">
                     <IoCalendarOutline className="w-4 h-4 text-slate-500" />
                     <span className="text-sm text-slate-500">
-                      Joined July 2021
+                      {formatMemberSinceDate(user?.createdAt)}
                     </span>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <div className="flex gap-1 items-center">
                     <span className="font-bold text-xs">
-                      {authUser?.user.following.length}
+                      {user?.following.length}
                     </span>
                     <span className="text-slate-500 text-xs">Following</span>
                   </div>
                   <div className="flex gap-1 items-center">
                     <span className="font-bold text-xs">
-                      {authUser?.user.followers.length}
+                      {user?.followers.length}
                     </span>
                     <span className="text-slate-500 text-xs">Followers</span>
                   </div>
@@ -201,7 +238,7 @@ const ProfilePage = () => {
             </>
           )}
 
-          <Posts />
+          <Posts feedType={feedType} username={username} userId={user?._id} />
         </div>
       </div>
     </>

@@ -17,7 +17,7 @@ export const getProfile = async (req, res) => {
 
     res.status(200).json({
       message: "Perfil encontrado!",
-      user,
+      data: user,
     });
   } catch (error) {
     res.status(500).json({

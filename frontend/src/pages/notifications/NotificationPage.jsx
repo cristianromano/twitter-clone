@@ -4,32 +4,66 @@ import LoadingSpinner from "../../components/common/LoadingSpinner.jsx";
 import { IoSettingsOutline } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
 import { FaHeart } from "react-icons/fa6";
-
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 const NotificationPage = () => {
-  const isLoading = false;
-  const notifications = [
-    {
-      _id: "1",
-      from: {
-        _id: "1",
-        username: "johndoe",
-        profileImg: "/avatars/boy2.png",
-      },
-      type: "follow",
+  const queryClient = useQueryClient();
+  const { data: notifications, isLoading } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: async () => {
+      try {
+        const token = localStorage.getItem("jwt");
+        const res = await fetch(`http://localhost:3000/api/notification`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include",
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || "An error occurred");
+        }
+        return data.data;
+      } catch (error) {
+        throw new Error(error.message);
+      }
     },
-    {
-      _id: "2",
-      from: {
-        _id: "2",
-        username: "janedoe",
-        profileImg: "/avatars/girl1.png",
-      },
-      type: "like",
+  });
+
+  const { mutate: deleteNotification, isPending: isDeleting } = useMutation({
+    mutationFn: async () => {
+      try {
+        const token = localStorage.getItem("jwt");
+        const res = await fetch(`http://localhost:3000/api/notification`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include",
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.message || "An error occurred");
+        }
+        return data;
+      } catch (error) {
+        throw new Error(error.message);
+      }
     },
-  ];
+    onSuccess: () => {
+      queryClient.invalidateQueries("notifications");
+    },
+  });
 
   const deleteNotifications = () => {
-    alert("All notifications deleted");
+    if (isDeleting) {
+      return;
+    }
+    deleteNotification();
   };
 
   return (

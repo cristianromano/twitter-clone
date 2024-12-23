@@ -6,7 +6,7 @@ import {
 } from "../controller/notification.controller.js";
 const notificationRouter = express.Router();
 
-notificationRouter.get("/:id", protectRoute, getNotifications);
+notificationRouter.get("/", protectRoute, getNotifications);
 notificationRouter.delete("/", protectRoute, deleteNotification);
 
 export default notificationRouter;

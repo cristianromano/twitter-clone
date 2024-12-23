@@ -4,12 +4,15 @@ import PostSkeleton from "../skeletons/PostSkeleton.jsx";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-const Posts = ({ feedType }) => {
+const Posts = ({ feedType, username, userId }) => {
   const getEndpoint = () => {
     switch (feedType) {
       case "forYou":
         return "/api/post";
-
+      case "posts":
+        return `/api/post/user/${username}`;
+      case "likes":
+        return `/api/post/likes/${userId}`;
       case "following":
         return "/api/post/following";
       default:
@@ -20,7 +23,7 @@ const Posts = ({ feedType }) => {
   const POST_ENDPOINT = getEndpoint();
 
   const {
-    data: post,
+    data: posts,
     isLoading,
     refetch,
     isRefetching,
@@ -38,21 +41,22 @@ const Posts = ({ feedType }) => {
           credentials: "include", // Esto asegura que las cookies se envíen si usas cookies para la sesión
         });
         const data = await res.json();
-        console.log(data);
+
         if (!res.ok) {
           throw new Error(data.message || "An error occurred");
         }
-        return data.posts;
+        return data;
       } catch (error) {
         throw new Error(error.message);
       }
     },
-    retry: false,
   });
 
   useEffect(() => {
-    refetch();
-  }, [feedType, refetch]);
+    if (feedType) {
+      refetch(); // Refetch cuando 'feedType' cambie
+    }
+  }, [feedType, refetch, username]);
 
   return (
     <>
@@ -63,12 +67,12 @@ const Posts = ({ feedType }) => {
           <PostSkeleton />
         </div>
       )}
-      {!isLoading && post?.length === 0 && (
+      {!isLoading && posts.data?.length === 0 && (
         <p className="text-center my-4">No posts in this tab. Switch 👻</p>
       )}
-      {!isLoading && post && (
+      {!isLoading && posts && (
         <div>
-          {post.map((post) => (
+          {posts.data.map((post) => (
             <Post key={post._id} post={post} />
           ))}
         </div>

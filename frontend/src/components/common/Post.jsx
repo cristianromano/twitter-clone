@@ -8,13 +8,13 @@ import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import LoadingSpinner from "./LoadingSpinner.jsx";
-
+import { formatPostDate } from "../../utils/dates/index.js";
 const Post = ({ post }) => {
   const [comment, setComment] = useState("");
   const { data: authUser } = useQuery({ queryKey: ["authUser"] });
   const queryClient = useQueryClient();
 
-  const { mutate: postComment, isPending } = useMutation({
+  const { mutate: deletePost, isPending } = useMutation({
     mutationFn: async () => {
       try {
         const token = localStorage.getItem("jwt");
@@ -71,14 +71,55 @@ const Post = ({ post }) => {
       const { message, updatedLikes } = data;
       toast.success(message);
 
-      queryClient.invalidateQueries({ queryKey: ["posts"] }, (oldData) => {
-        return oldData.map((p) => {
-          if (p._id === post._id) {
-            return { ...p, likes: updatedLikes };
-          }
-          return p;
-        });
+      queryClient.setQueryData(["posts"], (oldData) => {
+        return {
+          ...oldData, // Asegúrate de mantener las demás propiedades de oldData
+          data: oldData.data.map((p) => {
+            console.log("P:", p);
+            if (p._id === post._id) {
+              return {
+                ...p,
+                likes: Array.isArray(updatedLikes)
+                  ? [...updatedLikes]
+                  : p.likes,
+              };
+            }
+            return p;
+          }),
+        };
       });
+    },
+  });
+
+  const { mutate: commentPost, isPending: isCommenting } = useMutation({
+    mutationFn: async () => {
+      try {
+        const token = localStorage.getItem("jwt");
+        const res = await fetch(
+          `http://localhost:3000/api/post/comment/${post._id}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            credentials: "include",
+            body: JSON.stringify({ text: comment }),
+          }
+        );
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.message || "An error occurred");
+        }
+        return data;
+      } catch (error) {
+        throw new Error(error.message);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      setComment("");
     },
   });
 
@@ -88,16 +129,18 @@ const Post = ({ post }) => {
 
   const isMyPost = authUser.user._id === postOwner.userId._id;
 
-  const formattedDate = "1h";
-
-  const isCommenting = false;
+  const formattedDate = formatPostDate(post.createdAt);
 
   const handleDeletePost = () => {
-    postComment();
+    deletePost();
   };
 
   const handlePostComment = (e) => {
     e.preventDefault();
+    if (isCommenting) {
+      return;
+    }
+    commentPost();
   };
 
   const handleLikePost = () => {

@@ -10,30 +10,36 @@ import toast from "react-hot-toast";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 
 const Sidebar = () => {
-  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
-
   const queryClient = useQueryClient();
-  const { mutate } = useMutation({
+
+  const { mutate: logout } = useMutation({
     mutationFn: async () => {
-      const res = await fetch("/api/auth/logout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      const errorData = await res.json();
-      if (!res.ok) {
-        toast.error(errorData.message || "An error occurred");
+      const token = localStorage.getItem("jwt");
+      try {
+        const res = await fetch("/api/auth/logout", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          include: "credentials",
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Something went wrong");
+        }
+      } catch (error) {
+        throw new Error(error.message);
       }
     },
     onSuccess: () => {
-      queryClient.setQueryData(["authUser"], null);
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
+    },
+    onError: (error) => {
+      toast.error(error.message);
     },
   });
 
-  function handleLogOut() {
-    mutate();
-  }
+  const { data: authUser } = useQuery({ queryKey: ["authUser"] });
 
   return (
     <div className="md:flex-[2_2_0] w-18 max-w-52">
@@ -95,7 +101,7 @@ const Sidebar = () => {
               <BiLogOut
                 onClick={(e) => {
                   e.preventDefault();
-                  handleLogOut();
+                  logout();
                 }}
                 className="w-5 h-5 cursor-pointer"
               />

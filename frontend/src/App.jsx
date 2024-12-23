@@ -1,4 +1,3 @@
-import "./App.css";
 import { Navigate, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/home/HomePage.jsx";
 import LoginPage from "./pages/auth/LoginPage.jsx";
@@ -16,8 +15,17 @@ function App() {
     queryKey: ["authUser"],
     queryFn: async () => {
       try {
-        const res = await fetch("/api/auth/me");
+        const token = localStorage.getItem("jwt");
+        const res = await fetch("/api/auth/me", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include",
+        });
         const data = await res.json();
+        if (data.message) return null;
         if (!res.ok) {
           throw new Error(data.message || "An error occurred");
         }
@@ -38,36 +46,34 @@ function App() {
   }
 
   return (
-    <>
-      <div className="flex max-w-6xl mx-auto">
-        {authUser && <Sidebar />}
-        <Routes>
-          <Route
-            path="/"
-            element={authUser ? <HomePage /> : <Navigate to={"/login"} />}
-          />
-          <Route
-            path="/signup"
-            element={!authUser ? <SignUpPage /> : <Navigate to={"/"} />}
-          />
-          <Route
-            path="/login"
-            element={!authUser ? <LoginPage /> : <Navigate to={"/"} />}
-          />
-          <Route
-            path="/notifications"
-            element={authUser ? <NotificationPage /> : <Navigate to={"/"} />}
-          />
-          {/* <Route path="/profile" element={<Navigate to={"/"} />} /> */}
-          <Route
-            path="/profile/:username"
-            element={authUser ? <ProfilePage /> : <Navigate to={"/"} />}
-          />
-        </Routes>
-        {authUser && <RightPanel />}
-        <Toaster />
-      </div>
-    </>
+    <div className="flex max-w-6xl mx-auto">
+      {authUser && <Sidebar />}
+      <Routes>
+        <Route
+          path="/"
+          element={authUser ? <HomePage /> : <Navigate to={"/login"} />}
+        />
+        <Route
+          path="/login"
+          element={!authUser ? <LoginPage /> : <Navigate to={"/"} />}
+        />
+        <Route
+          path="/signup"
+          element={!authUser ? <SignUpPage /> : <Navigate to={"/"} />}
+        />
+        <Route
+          path="/notifications"
+          element={authUser ? <NotificationPage /> : <Navigate to={"/login"} />}
+        />
+        {/* <Route path="/profile" element={<Navigate to={"/"} />} /> */}
+        <Route
+          path="/profile/:username"
+          element={authUser ? <ProfilePage /> : <Navigate to={"/login"} />}
+        />
+      </Routes>
+      {authUser && <RightPanel />}
+      <Toaster />
+    </div>
   );
 }
 
