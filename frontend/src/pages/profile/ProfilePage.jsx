@@ -11,7 +11,7 @@ import { FaArrowLeft } from "react-icons/fa6";
 import { IoCalendarOutline } from "react-icons/io5";
 import { FaLink } from "react-icons/fa";
 import { MdEdit } from "react-icons/md";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { formatMemberSinceDate } from "../../utils/date/index.js";
 
@@ -183,7 +183,7 @@ const ProfilePage = () => {
                           rel="noreferrer"
                           className="text-sm text-blue-500 hover:underline"
                         >
-                          {userProfile?.user.link}
+                          youtube.com/@asaprogrammer_
                         </a>
                       </>
                     </div>
@@ -231,12 +231,7 @@ const ProfilePage = () => {
             </>
           )}
 
-          {console.log("dfs")}
-          <Posts
-            feedType={feedType}
-            username={userProfile?.user.username}
-            userId={userProfile?.user._id}
-          />
+          <Posts />
         </div>
       </div>
     </>

@@ -2,7 +2,6 @@ import User from "../models/user.model.js";
 import Notification from "../models/notification.model.js";
 import bcrypt from "bcryptjs";
 import { v2 as cloudinary } from "cloudinary";
-import Post from "../models/post.model.js";
 
 export const getProfile = async (req, res) => {
   try {
@@ -216,37 +215,6 @@ export const restorePassword = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: "No se pudo restablecer la contraseña!",
-      error: error.message,
-    });
-  }
-};
-
-export const getUserPosts = async (req, res) => {
-  try {
-    const { username } = req.params;
-
-    const user = await User.findOne({ username });
-
-    if (user) {
-      const post = await Post.find({ userId: user._id }).populate(
-        "userId",
-        "username profileImg"
-      );
-
-      res.status(200).json({
-        message: "Publicaciones encontradas!",
-        post,
-      });
-    }
-
-    if (!Post) {
-      return res.status(404).json({
-        message: "Publicaciones no encontradas!",
-      });
-    }
-  } catch (error) {
-    res.status(500).json({
-      message: "No se pudieron obtener las publicaciones del usuario!",
       error: error.message,
     });
   }

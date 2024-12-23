@@ -120,11 +120,10 @@ export const likeUnlikePost = async (req, res) => {
           $push: { likes: user._id },
         }
       );
-
       await User.updateOne(
         { _id: user._id },
         {
-          $push: { LikedPosts: id },
+          $push: { likedPosts: id },
         }
       );
 
@@ -137,7 +136,6 @@ export const likeUnlikePost = async (req, res) => {
       await notification.save();
 
       const updatedLikes = [...post.likes, user._id];
-
       res.status(200).json({
         message: "Post liked!",
         updatedLikes,
@@ -217,72 +215,6 @@ export const getFollowingPosts = async (req, res) => {
       message: "Posts found!",
       posts,
     });
-  } catch (error) {
-    res.status(500).json({
-      message: "Posts not found!",
-      error: error.message,
-    });
-  }
-};
-
-export const getUserPosts = async (req, res) => {
-  try {
-    const { username } = req.params;
-
-    const user = await User.findOne({ username });
-
-    if (user) {
-      const post = await Post.find({ userId: user._id }).populate(
-        "userId",
-        "username profileImg"
-      );
-
-      if (!post) {
-        post = [];
-      }
-
-      res.status(200).json({
-        message: "Posts found!",
-        posts: post,
-      });
-    } else {
-      return res.status(404).json({
-        message: "No hay usuario encontrado!",
-      });
-    }
-  } catch (error) {
-    res.status(500).json({
-      message: "Posts not found!",
-      error: error.message,
-    });
-  }
-};
-
-export const getUserLikes = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const user = await User.findById(id);
-
-    if (user) {
-      const likedPost = await Post.find({ _id: { $in: user.LikedPosts } })
-        .populate({
-          path: "userId",
-          select: "-password",
-        })
-        .populate({
-          path: "comments.user",
-          select: "-password",
-        });
-
-      res.status(200).json({
-        likedPost,
-      });
-    } else {
-      return res.status(404).json({
-        message: "not found user!",
-      });
-    }
   } catch (error) {
     res.status(500).json({
       message: "Posts not found!",
