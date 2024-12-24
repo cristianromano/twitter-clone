@@ -32,7 +32,7 @@ const Posts = ({ feedType, username, userId }) => {
     queryFn: async () => {
       try {
         const token = localStorage.getItem("jwt");
-        const res = await fetch(`http://localhost:3000${POST_ENDPOINT}`, {
+        const res = await fetch(`${POST_ENDPOINT}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

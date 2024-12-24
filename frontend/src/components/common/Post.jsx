@@ -18,7 +18,7 @@ const Post = ({ post }) => {
     mutationFn: async () => {
       try {
         const token = localStorage.getItem("jwt");
-        const res = await fetch(`http://localhost:3000/api/post/${post._id}`, {
+        const res = await fetch(`/api/post/${post._id}`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
@@ -47,7 +47,7 @@ const Post = ({ post }) => {
       try {
         const token = localStorage.getItem("jwt");
         const res = await fetch(
-          `http://localhost:3000/api/post/like/${post._id}`,
+          `/api/post/like/${post._id}`,
           {
             method: "PATCH",
             headers: {
@@ -95,7 +95,7 @@ const Post = ({ post }) => {
       try {
         const token = localStorage.getItem("jwt");
         const res = await fetch(
-          `http://localhost:3000/api/post/comment/${post._id}`,
+          `/api/post/comment/${post._id}`,
           {
             method: "PATCH",
             headers: {

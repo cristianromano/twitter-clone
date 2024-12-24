@@ -42,7 +42,7 @@ const ProfilePage = () => {
       try {
         const token = localStorage.getItem("jwt");
         const res = await fetch(
-          `http://localhost:3000/api/user/profile/${username}`,
+          `/api/user/profile/${username}`,
           {
             method: "GET",
             headers: {

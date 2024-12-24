@@ -12,7 +12,7 @@ const NotificationPage = () => {
     queryFn: async () => {
       try {
         const token = localStorage.getItem("jwt");
-        const res = await fetch(`http://localhost:3000/api/notification`, {
+        const res = await fetch(`/api/notification`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -36,7 +36,7 @@ const NotificationPage = () => {
     mutationFn: async () => {
       try {
         const token = localStorage.getItem("jwt");
-        const res = await fetch(`http://localhost:3000/api/notification`, {
+        const res = await fetch(`/api/notification`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
